@@ -11,9 +11,17 @@
 #include "../src/4_seccipher_regaes.S"	
 	
 .text
+
 .syntax unified
+#ifdef __thumb2__
+.thumb
+#endif
 
 .pool
+#ifdef __thumb2__
+.thumb_func
+#endif
+.type   regaes_test, %function
 .global regaes_test	
 regaes_test:	
 	push {R2-R12, LR}

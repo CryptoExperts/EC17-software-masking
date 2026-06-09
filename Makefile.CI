@@ -1,0 +1,3 @@
+exec_CI:
+	docker build -t ec17_tester -f CI/Dockerfile .
+	docker run --rm ec17_tester

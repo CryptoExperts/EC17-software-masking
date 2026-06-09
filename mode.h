@@ -26,6 +26,7 @@
 #define FULLTABSHIFT			17
 #define EXPLOG2SHIFT			18
 #define HALFTABSHIFT			19
+#define NONE				20
 
 
 /********************************/ 

@@ -1,7 +1,6 @@
 #include "../param.h"
 #include "../src/random.S"
-#include "../src/3_secsbox_bspresent.S"
-#include "../src/4_seccipher_bspresent.S"	
+#include "../src/3_secsbox_bsaes.S"	
 	
 .text
 
@@ -14,10 +13,10 @@
 #ifdef __thumb2__
 .thumb_func
 #endif
-.type   bspresent_test, %function
-.global bspresent_test	
-bspresent_test:	
+.type   bsaes_test, %function
+.global bsaes_test	
+bsaes_test:	
 	push {R2-R12, LR}
-	BL	bspresent_encrypt
+	BL	bsaes_sbox
 	pop {R2-R12, LR}
 	BX	LR

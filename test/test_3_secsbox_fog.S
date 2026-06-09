@@ -2,23 +2,22 @@
 #include "../src/random.S"
 #include "../src/2_secmult_cprr.S"
 #include "../src/3_secsbox_fog.S"
-#include "../src/4_seccipher_regpresent.S"
-
+	
 .text
 
 .syntax unified
 #ifdef __thumb2__
-.thumb
+.thumb	
 #endif
 
 .pool
 #ifdef __thumb2__
 .thumb_func
 #endif
-.type   regpresent_test, %function
-.global regpresent_test	
-regpresent_test:	
+.type   fog_test, %function
+.global fog_test	
+fog_test:	
 	push {R2-R12, LR}
-	BL	regpresent_encrypt
-	pop  {R2-R12, LR}
+	BL fog_sbox
+	pop {R2-R12, LR}
 	BX	LR

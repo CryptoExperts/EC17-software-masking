@@ -9,7 +9,7 @@ for (dirpath, dirnames, filenames) in os.walk("./"):
 
 FIELDSIZE = ""	
 NUMBEROFSHARES  = "2"	
-MULTMODE = ""	
+MULTMODE = "NONE"	
 CODEMODE = "NORMAL"
 CIPHMODE = "ANY"	
 REFMODE  = "RF1"
@@ -20,6 +20,7 @@ NBTESTS  = "1"
 
 print("This script will generate the Makefile and the param.h file in order to run the desired test with the adequate inputs")
 print("")
+
 print("Please enter the test you wish to run. List of covered tests are the following:")
 print("Enter 1: FIELD MULTIPLICATION")
 print("Enter 2: SECURE MULTIPLICATION: CPRR")
@@ -221,13 +222,12 @@ if test_mode == 1:
         print("1: 4")
         print("2: 6")
         print("3: 8")
-        print("4: 10")
         print("Enter the desired number:")
         
         print()
         field_size = int(input())
 
-        while field_size not in range(1,5):
+        while field_size not in range(1,4):
             print("Invalid input: please enter a valid test by picking the correct number (1 to 4)")
             print("Enter the desired number:")
             field_size = int(input())
@@ -238,8 +238,6 @@ if test_mode == 1:
             FIELDSIZE = "6"
         elif field_size == 3:
             FIELDSIZE = "8"
-        elif field_size == 4:
-            FIELDSIZE = "10"
 
         MULTMODE = "HALFTAB"
 
@@ -450,14 +448,13 @@ if test_mode == 3:
             print("1: 4")
             print("2: 6")
             print("3: 8")
-            print("4: 10")
             print("Enter the desired number:")
             
             print()
             field_size = int(input())
 
-            while field_size not in range(1,5):
-                print("Invalid input: please enter a valid test by picking the correct number (1 to 4)")
+            while field_size not in range(1,4):
+                print("Invalid input: please enter a valid test by picking the correct number (1 to 3)")
                 print("Enter the desired number:")
                 field_size = int(input())
 
@@ -467,8 +464,6 @@ if test_mode == 3:
                 FIELDSIZE = "6"
             elif field_size == 3:
                 FIELDSIZE = "8"
-            elif field_size == 4:
-                FIELDSIZE = "10"
 
             MULTMODE = "HALFTAB"
 
@@ -522,28 +517,7 @@ if test_mode == 3:
         print("Choosing PARA 8 as code mode.")
         CODEMODE = "PARA8"
         FIELDSIZE = "4"  
-        
-        print("MULTIPLICATION MODE:")
-        print("1: EXPLOG2")
-        print("2: HALFTAB")
-        print("3: FULLTAB")
-        print("Enter the desired number:")
-        
-        print()
-        mult_mode = int(input())
-        while mult_mode not in range(1,4):
-            print("Invalid input: please enter a valid test by picking the correct number (1 to 3)")
-            print("Enter the desired number:")
-            mult_mode = int(input())
-
-        if mult_mode == 1:
-            MULTMODE = "EXPLOG2"
-
-        if mult_mode == 2:
-            MULTMODE = "HALFTAB"
-
-        if mult_mode == 3:
-            MULTMODE = "FULLTAB"
+        MULTMODE = "FULLTAB" 
 
 if test_mode == 4:
     print("Entering RP AES SBOX tests. Please choose the following parameters")
@@ -911,28 +885,68 @@ if test_mode != 1:
 
 print("Generating param.h and Makefile. Test the code by running 'make clean', 'make', and './hom_ec17'")
 
+#### Generate the Makefile depending on the platform
+# Local gcc
+CC_LOCAL = "gcc"
+EXTRA_CFLAGS_LOCAL = ""
+EXTRA_LDFLAGS_LOCAL = ""
+EXTRA_OBJ_LOCAL = f"$(patsubst %.S, %.o, test/{test_str})"
+PLATFORM_TEST_STRING_LOCAL = "./hom_ec17"
+# Embedded Cortex-M4
+CC_CM4 = "arm-none-eabi-gcc"
+EXTRA_CFLAGS_CM4 = "-mcpu=cortex-m4 -mthumb"
+EXTRA_LDFLAGS_CM4 = "--specs=rdimon.specs -lrdimon -T linker.ld"
+EXTRA_OBJ_CM4 = f"startup.o $(patsubst %.S, %.o, test/{test_str})"
+PLATFORM_TEST_STRING_CM4 = "qemu-system-arm -machine mps2-an386 -cpu cortex-m4 -semihosting -nographic -kernel ./hom_ec17"
+# Cortex-A 
+CC_CA = "arm-linux-gnueabi-gcc"
+EXTRA_CFLAGS_CA = "-march=armv7-a"
+EXTRA_LDFLAGS_CA = "-static"
+EXTRA_OBJ_CA = f"$(patsubst %.S, %.o, test/{test_str})"
+PLATFORM_TEST_STRING_CA = "qemu-arm -L /usr/arm-linux-gnueabi ./hom_ec17"
 
 makefile_str = f'''
 # THIS MAKEFILE WAS AUTOMATICALLY GENERATED VIA CONFIGURE SCRIPT. PLEASE DO NOT MODIFY IT.
 
-.PHONY: clean, mrproper
+.PHONY: clean
 
-CC = gcc
-OCC = gcc
-CFLAGS = -Wall -O0
-DEPS = $(wildcard test/{test_str})
-DEPH = param.h mode.h
-OBJ = main.o
+CC = {CC_LOCAL}
+CFLAGS = -Wall -Wextra -O0 -MMD -MP -g {EXTRA_CFLAGS_LOCAL}
+LDFLAGS = {EXTRA_LDFLAGS_LOCAL}
+OBJ = main.o {EXTRA_OBJ_LOCAL}
+PLATFORM_TEST = {PLATFORM_TEST_STRING_LOCAL}
 
+ifeq ($(PLATFORM),cortexm4)
+CC = {CC_CM4}
+CFLAGS = -Wall -Wextra -O0 -MMD -MP -g {EXTRA_CFLAGS_CM4}
+LDFLAGS = {EXTRA_LDFLAGS_CM4}
+OBJ = main.o {EXTRA_OBJ_CM4}
+PLATFORM_TEST = {PLATFORM_TEST_STRING_CM4}
+endif
+ifeq ($(PLATFORM),cortexa)
+CC = {CC_CA}
+CFLAGS = -Wall -Wextra -O0 -MMD -MP -g {EXTRA_CFLAGS_CA}
+LDFLAGS = {EXTRA_LDFLAGS_CA}
+OBJ = main.o {EXTRA_OBJ_CA}
+PLATFORM_TEST = {PLATFORM_TEST_STRING_CA}
+endif
 
-hom_ec17: main.c $(DEPH) $(DEPS)
-	$(CC) $(CFLAGS) $? -o $@ 
+%.o: %.S
+\t$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.c
+\t$(CC) $(CFLAGS) -c $< -o $@
+
+hom_ec17: $(OBJ)
+\t$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) -o $@
+
+platform_test:
+\t$(PLATFORM_TEST)
 
 # clean
 clean:
-	rm -rf *~ rm -rf *.o rm -rf rm src/*~ rm -rf src/*.o rm -rf test/*~
-	rm -rf hom_ec17
-
+\trm -rf *.o src/*.o test/*.o *.d src/*.d test/*.d
+\trm -rf hom_ec17
 '''
 
 param_str = f'''

@@ -1,8 +1,7 @@
 #include "../param.h"
 #include "../src/random.S"
 #include "../src/3_secsbox_bspresent.S"
-#include "../src/4_seccipher_bspresent.S"	
-	
+
 .text
 
 .syntax unified
@@ -11,13 +10,13 @@
 #endif
 
 .pool
-#ifdef __thumb2__
+#ifdef __thumb2__	
 .thumb_func
 #endif
 .type   bspresent_test, %function
 .global bspresent_test	
 bspresent_test:	
 	push {R2-R12, LR}
-	BL	bspresent_encrypt
+	BL	bspresent_sbox	
 	pop {R2-R12, LR}
-	BX	LR
+	BX  LR

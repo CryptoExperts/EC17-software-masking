@@ -89,9 +89,9 @@ void transpose_bs_to_nm_4b(uint res[NBSHARES][4], uint out[NBSHARES]){
 /*                                                                           */
 /*****************************************************************************/
 
-uint tabmul[1<<(2*FIELDSIZE)];
+uint16_t tabmul[1<<(2*FIELDSIZE)];
 
-void generate_table_mult(uint *tab) {
+void generate_table_mult(uint16_t *tab) {
 	uint i,j;
   uint tmp = 0;
   for (i=0; i<(1<<FIELDSIZE); i++){
@@ -139,12 +139,12 @@ int test_secure_evaluation (uint opA[NBSHARES], uint out[NBSHARES]) {
     }
   }
   else {
-    for (nb_chunk=0; nb_chunk<FIELDSIZE; nb_chunk++) {
-      A = opA[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
-      res = out[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
+    for (nb_chunk=0; nb_chunk<(int)((8 * sizeof(uint)) / FIELDSIZE); nb_chunk++) {
+      A = (opA[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
+      res = (out[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
       for (i=1; i<NBSHARES; i++) {
-        A ^= opA[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
-        res ^= out[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
+        A ^= (opA[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
+        res ^= (out[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
       }
       if (multiplication(A, multiplication(A,A)) != res ) {
         return 1;
@@ -182,14 +182,14 @@ int test_secure_multiplication (uint opA[NBSHARES], uint opB[NBSHARES], uint out
     }
   }
   else {
-    for (nb_chunk=0; nb_chunk<FIELDSIZE; nb_chunk++) {
-      A = opA[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
-      B = opB[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
-      res = out[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
+    for (nb_chunk=0; nb_chunk<(int)((8 * sizeof(uint)) / FIELDSIZE); nb_chunk++) {
+      A = (opA[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
+      B = (opB[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
+      res = (out[0] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
       for (i=1; i<NBSHARES; i++) {
-        A ^= opA[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
-        B ^= opB[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
-        res ^= out[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk)) >> (FIELDSIZE*nb_chunk);
+        A ^= (opA[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
+        B ^= (opB[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
+        res ^= (out[i] & (((1<<FIELDSIZE)-1) << (FIELDSIZE*nb_chunk))) >> (FIELDSIZE*nb_chunk);
       }
       if (multiplication(A,B) != res) {
         return 1;
